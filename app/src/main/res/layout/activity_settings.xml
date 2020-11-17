@@ -29,10 +29,10 @@
         android:textAllCaps="false"
         android:textAppearance="@style/TextAppearance.AppCompat.Medium"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/txtHeader" />
+        app:layout_constraintTop_toBottomOf="@+id/txtSettingsHeader" />
 
     <TextView
-        android:id="@+id/txtHeader"
+        android:id="@+id/txtSettingsHeader"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="36dp"

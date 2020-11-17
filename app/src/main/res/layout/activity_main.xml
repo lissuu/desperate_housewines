@@ -8,10 +8,61 @@
 
     <Button
         android:id="@+id/btnToSettings"
+        android:layout_width="0dp"
+        android:layout_height="52dp"
+        android:layout_marginTop="24dp"
+        android:text="Asetukset"
+        app:layout_constraintEnd_toEndOf="@+id/btnToCollection"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/btnToCollection"
+        app:layout_constraintTop_toBottomOf="@+id/btnToCollection" />
+
+    <TextView
+        android:id="@+id/txtMainHeader"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Asetukset"
-        tools:layout_editor_absoluteX="155dp"
-        tools:layout_editor_absoluteY="256dp" />
+        android:layout_marginTop="132dp"
+        android:text="Jesus Juice"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+        android:textSize="46"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/btnToBrowse"
+        android:layout_width="161dp"
+        android:layout_height="52dp"
+        android:layout_marginTop="124dp"
+        android:text="Selaa viinejä"
+        android:textAllCaps="true"
+        android:textAppearance="@style/TextAppearance.MaterialComponents.Button"
+        android:textColor="#FFFFFF"
+        app:layout_constraintTop_toBottomOf="@+id/txtMainHeader"
+        tools:layout_editor_absoluteX="125dp" />
+
+    <Button
+        android:id="@+id/btnToCollection"
+        android:layout_width="0dp"
+        android:layout_height="52dp"
+        android:layout_marginTop="24dp"
+        android:text="Omat viinit"
+        app:layout_constraintEnd_toEndOf="@+id/btnToBrowse"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/btnToBrowse"
+        app:layout_constraintTop_toBottomOf="@+id/btnToBrowse" />
+
+    <TextView
+        android:id="@+id/txtMainHeaderExtra"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="“What wine goes with Captain Crunch?”"
+        android:textAppearance="@style/TextAppearance.AppCompat.Small"
+        android:textSize="10sp"
+        app:layout_constraintEnd_toEndOf="@+id/txtMainHeader"
+        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintStart_toStartOf="@+id/txtMainHeader"
+        app:layout_constraintTop_toBottomOf="@+id/txtMainHeader" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
