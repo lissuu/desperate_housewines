@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -29,11 +30,47 @@ public class DataHandler {
     final static String DATA_URL = "https://www.alko.fi/INTERSHOP/static/WFS/Alko-OnlineShop-Site/-/Alko-OnlineShop/fi_FI/Alkon%20Hinnasto%20Tekstitiedostona/alkon-hinnasto-tekstitiedostona.xlsx";
     final static String DATA_FILE = "data.xlsx";
 
+    ArrayList<Item> parsedData;
+
     public DataHandler(Context c, VolleyCallback cb) {
-        getData(c, cb);
+        fetchData(c, cb);
     }
 
-    private void getData (Context c, VolleyCallback cb) {
+    public boolean hasItemNamed (String name) {
+        if (parsedData == null) {
+            Log.e(TAG, "can't call hasItemNamed() without fetching data");
+            return false;
+        }
+
+        String lower = name.toLowerCase();
+
+        for (Item i : parsedData) {
+            if (i.getName() == lower)
+                return true;
+        }
+
+        return false;
+    }
+
+    public Item getItemNamed (String name) {
+        if (parsedData == null) {
+            Log.e(TAG, "can't call getItemNamed() without fetching data");
+            return null;
+        }
+
+        String lower = name.toLowerCase();
+
+        for (Item i : parsedData) {
+            if (i.getName() == lower)
+                return i;
+        }
+
+        return null;
+    }
+
+
+
+    private void fetchData(Context c, VolleyCallback cb) {
         Log.d(TAG, "[getData] init");
 
         InputStreamVolleyRequest request = new InputStreamVolleyRequest(Request.Method.GET, DATA_URL,
@@ -43,8 +80,7 @@ public class DataHandler {
                         Log.d(TAG, "[getData] => [onResponse]");
 
                         saveRawData(c, response);
-                        parseSavedData(c);
-
+                        parsedData = parseSavedData(c);
                         cb.onSuccess();
                     }
                 }, new Response.ErrorListener() {
@@ -75,42 +111,39 @@ public class DataHandler {
         }
     }
 
-    private void parseSavedData(Context c) {
+    private ArrayList<Item> parseSavedData(Context c) {
         try {
             File file = new File(c.getFilesDir(), DataHandler.DATA_FILE);
             InputStream fis = new FileInputStream(file);
             ReadableWorkbook wb = new ReadableWorkbook(fis);
             Sheet sheet = wb.getFirstSheet();
             List<Row> rows = sheet.read();
+            ArrayList<Item> data = new ArrayList<Item>(rows.size());
 
-            Log.d(TAG,"[parseSavedData]\n" +
-                    "\nparsing file: " + file.toString() +
-                    "\ncan read: " + file.canRead() +
-                    "\n" + (file.length() > 0 ? "data size: " + Math.round(file.length() / 1024) + " kilobytes" : ", but it's size is zero") +
-                    "\nrows: " + rows.size()
-                );
+            Log.d(TAG, "[parseSavedData]:" +
+                "\nfile\t\t: " + file.toString() +
+                "\ncan read\t: " + file.canRead() +
+                "\ndata size\t: " + (file.length() > 0 ? Math.round(file.length() / 1024) + " kilobytes" : "EMPTY") +
+                "\nrows\t\t: " + rows.size()
+            );
 
             for (Row r : rows) {
-                String rowprint = "[parseSavedData] [" + r.getRowNum() + "]: ";
+                Item i = new Item(r);
 
-                Iterator<Cell> iter = r.iterator();
-
-                while (iter.hasNext()) {
-                    Cell cell = iter.next();
-                    rowprint += (cell != null ? cell.getRawValue() : "NULL") + "\t";
-                }
-
-                Log.d(TAG, rowprint);
-
-                if (r.getRowNum() > 1000) {
-                    Log.e(TAG, "[parseSavedData] parse exited early");
-                    break;
+                if (i.isValid()) {
+                    data.add(new Item(r));
+                } else {
+                    Log.d(TAG, "[parseSavedData] row " + r.getRowNum() + " is invalid :: " + i.toString());
                 }
             }
 
+            Log.d(TAG, "[parseSavedData] parsing DONE, valid data rows: " + data.size() + " (invalid: " + (rows.size() - data.size()) + ")");
+            return data;
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        return new ArrayList<Item>();
     }
 }
 
