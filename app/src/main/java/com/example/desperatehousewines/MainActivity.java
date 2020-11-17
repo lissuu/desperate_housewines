@@ -7,10 +7,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
-
-import java.util.ArrayList;
-import java.util.Collection;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     final String TAG = "MAIN";
@@ -38,10 +34,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         switch (view.getId()) {
             case R.id.btnToBrowse:
-                startActivity(new Intent(this, Browse.class));
+                startActivity(new Intent(this, BrowseActivity.class));
                 break;
             case R.id.btnToSettings:
-                startActivity(new Intent(this, Settings.class));
+                startActivity(new Intent(this, SettingsActivity.class));
                 break;
             case R.id.btnToCollection:
 

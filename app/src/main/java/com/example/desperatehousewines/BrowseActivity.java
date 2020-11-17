@@ -7,7 +7,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.content.Context;
 import android.os.Bundle;
 
-public class Browse extends AppCompatActivity {
+public class BrowseActivity extends AppCompatActivity {
     RecyclerView recyclerView;
     Context context;
     RecyclerView.Adapter recyclerView_Adapter;
