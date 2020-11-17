@@ -21,10 +21,10 @@
         android:id="@+id/txtMainHeader"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="132dp"
+        android:layout_marginTop="96dp"
         android:text="Jesus Juice"
         android:textAppearance="@style/TextAppearance.AppCompat.Large"
-        android:textSize="46"
+        android:textSize="46sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -38,8 +38,9 @@
         android:textAllCaps="true"
         android:textAppearance="@style/TextAppearance.MaterialComponents.Button"
         android:textColor="#FFFFFF"
-        app:layout_constraintTop_toBottomOf="@+id/txtMainHeader"
-        tools:layout_editor_absoluteX="125dp" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/txtMainHeader" />
 
     <Button
         android:id="@+id/btnToCollection"
