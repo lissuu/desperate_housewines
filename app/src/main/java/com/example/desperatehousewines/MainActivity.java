@@ -10,23 +10,16 @@ import android.widget.Button;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     final String TAG = "MAIN";
-    Button btnToBrowse;
-    Button btnToSettings;
-    Button btnToCollection;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        btnToBrowse = findViewById(R.id.btnToBrowse);
-        btnToSettings = findViewById(R.id.btnToSettings);
-        btnToCollection = findViewById(R.id.btnToCollection);
-
-        btnToBrowse.setOnClickListener(this);
-        btnToSettings.setOnClickListener(this);
-        btnToCollection.setOnClickListener(this);
+        findViewById(R.id.btnToBrowse).setOnClickListener(this);
+        findViewById(R.id.btnToSettings).setOnClickListener(this);
+        findViewById(R.id.btnToCollection).setOnClickListener(this);
+        findViewById(R.id.btnLogout).setOnClickListener(this);
     }
 
     @Override
@@ -40,7 +33,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startActivity(new Intent(this, SettingsActivity.class));
                 break;
             case R.id.btnToCollection:
-
+                startActivity(new Intent(this, CollectionActivity.class));
+                break;
+            case R.id.btnLogout:
+                startActivity(new Intent(this, LoginActivity.class));
                 break;
 
             default: Log.e(TAG, "no onclick listener for view: " + view.getId());
