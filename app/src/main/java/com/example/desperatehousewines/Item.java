@@ -4,9 +4,12 @@ package com.example.desperatehousewines;
 import androidx.annotation.NonNull;
 
 import org.dhatim.fastexcel.reader.Row;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -109,6 +112,38 @@ public class Item {
         put(29, (String r) -> ean = parseValue(r, 0L, false));
     }};
 
+    /*  Parsers for JSON objects
+            Key     JSON key, case sensitive.
+            Value   see above.
+     */
+    Map<String, Consumer<String>> jsonParsers = new HashMap<String, Consumer<String>>() {{
+        put("Numero", (String r) -> number = parseValue(r, 1L, true));
+        put("Nimi", (String r) -> name = parseValue(r, "", true));
+        put("Valmistaja", (String r) -> producer = parseValue(r, "", false));
+        put("Pullokoko", (String r) -> size = parseValue(r.split(" ", -1)[0].replace(",", "."), 0.0f, false));
+        put("Hinta", (String r) -> price = parseValue(r, 0.0f, true));
+
+        put("Uutuus", (String r) -> isNew = parseValue(r, false, false, "uutuus"));
+        put("Tyyppi", (String r) -> type = parseValue(r, Type.NONE, true));
+        put("Alatyyppi", (String r) -> subType = parseValue(r, "", false));
+
+        put("Valmistusmaa", (String r) -> country = parseValue(r, "", false));
+        put("Alue", (String r) -> area = parseValue(r, "", false));
+        put("Vuosikerta", (String r) -> year = parseValue(r, 0, false));
+
+        put("Etikettimerkintoja", (String r) -> extraLabel = parseValue(r, "", false));
+        put("Huomautus", (String r) -> extraInfo = parseValue(r, "", false));
+        put("Rypaleet", (String r) -> grapes = parseValue(r.split(","), new ArrayList<String>(), false));
+        put("Luonnehdinta", (String r) -> keywords = parseValue(r.split(","), new ArrayList<String>(), false));
+        put("Pakkaustyyppi", (String r) -> packageType = parseValue(r, "", false));
+
+        put("Suljentatyyppi", (String r) -> stopper = parseValue(r, "", false));
+        put("Alkoholi_prosentti", (String r) -> alcohol = parseValue(r, -1, false));
+
+        put("Valikoima", (String r) -> selection = parseValue(r, "", false));
+        put("EAN", (String r) -> ean = parseValue(r, 0L, false));
+    }};
+
     // Starts as true (valid) and set to false by the parsers if the data is required.
     boolean isValid = true;
 
@@ -138,6 +173,7 @@ public class Item {
 
     long ean;
 
+    // Constructor for parsing excel sheet
     public Item (Row r) {
         // Iterates through parsers and tries to fetch data from the given row.
         for (HashMap.Entry<Integer, Consumer<String>> e : parsers.entrySet()) {
@@ -149,6 +185,24 @@ public class Item {
                 String raw = r.getCell(key).getRawValue();
 
                 parser.accept(raw != null ? raw : "");
+            } else {
+                parser.accept("");
+            }
+        }
+    }
+
+    // Constructor for parsing JSON object.
+    public Item (JSONObject r) {
+        for (HashMap.Entry<String, Consumer<String>> e : jsonParsers.entrySet()) {
+            String key = e.getKey();
+            Consumer<String> parser = e.getValue();
+
+            if (r.has(key)) {
+                try {
+                    parser.accept(r.getString(key));
+                } catch (JSONException jsonException) {
+                    jsonException.printStackTrace();
+                }
             } else {
                 parser.accept("");
             }
