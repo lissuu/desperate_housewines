@@ -1,6 +1,7 @@
 package com.example.desperatehousewines;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,34 +10,50 @@ import android.widget.Toast;
 
 import androidx.recyclerview.widget.RecyclerView;
 
-public class RecyclerBrowseAdapter extends RecyclerView.Adapter<RecyclerBrowseAdapter.ViewHolder> {
-    String[] values;
-    Context context1;
+import java.util.List;
 
-    public RecyclerBrowseAdapter(Context context2, String[] values2){
-        values = values2;
-        context1 = context2;
+public class RecyclerBrowseAdapter extends RecyclerView.Adapter<RecyclerBrowseAdapter.ViewHolder> {
+    List<Item> items;
+    Context context1;
+    static final String TAG = "ADAPTER";
+
+
+    public RecyclerBrowseAdapter(Context c, List<Item> items) {
+        this.items = items;
+        context1 = c;
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        public TextView textView;
         private Context context;
+
+        public TextView txtName;
+        public TextView txtPrice;
+        public TextView txtSize;
+        public TextView txtAlcohol;
+        public TextView txtYear;
+
 
         public ViewHolder(Context c, View v){
             super(v);
-
-            this.textView = v.findViewById(R.id.textview1);
             this.context = c;
+
+            this.txtName = v.findViewById(R.id.txtName);
+            this.txtPrice = v.findViewById(R.id.txtPrice);
+            this.txtSize = v.findViewById(R.id.txtSize);
+            this.txtAlcohol = v.findViewById(R.id.txtAlcohol);
+            this.txtYear = v.findViewById(R.id.txtYear);
 
             v.setOnClickListener(this);
         }
 
         @Override
         public void onClick(View v) {
-            int position = getAdapterPosition();
+            int pos = getAdapterPosition();
 
-            if (position != RecyclerView.NO_POSITION) {
-                Toast.makeText(context, "position: " + position, Toast.LENGTH_SHORT).show();
+            if (pos != RecyclerView.NO_POSITION) {
+                Item item = items.get(pos);
+                Log.d(TAG, item.toString());
+                Toast.makeText(context, "position: " + pos, Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -50,12 +67,18 @@ public class RecyclerBrowseAdapter extends RecyclerView.Adapter<RecyclerBrowseAd
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder Vholder, int position){
-        Vholder.textView.setText(values[position]);
+    public void onBindViewHolder(ViewHolder Vholder, int pos) {
+        Item item = items.get(pos);
+
+        Vholder.txtName.setText(item.getName());
+        Vholder.txtPrice.setText(item.getPriceAsString());
+        Vholder.txtSize.setText(item.getSizeAsString());
+        Vholder.txtAlcohol.setText(item.getAlcoholAsString());
+        Vholder.txtYear.setText(item.getYearAsString());
     }
 
     @Override
     public int getItemCount(){
-        return values.length;
+        return items.size();
     }
 }
