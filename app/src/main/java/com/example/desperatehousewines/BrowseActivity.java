@@ -19,12 +19,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class BrowseActivity extends AppCompatActivity implements RestClient.Callback {
     static final String TAG = "BROWSE";
@@ -182,7 +178,7 @@ public class BrowseActivity extends AppCompatActivity implements RestClient.Call
                 Item item = new Item(row);
 
                 if (item.isValid())
-                    items.add(item);
+                    items.add(item.createCardTitle());
 
             } catch (JSONException e) {
                 e.printStackTrace();

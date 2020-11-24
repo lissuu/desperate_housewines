@@ -1,6 +1,8 @@
 package com.example.desperatehousewines;
 
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 
 import org.dhatim.fastexcel.reader.Row;
@@ -9,7 +11,6 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -94,7 +95,7 @@ public class Item {
      */
     Map<String, Consumer<String>> jsonParsers = new HashMap<String, Consumer<String>>() {{
         put("Numero", (String r) -> number = parseValue(r, 1L, true));
-        put("Nimi", (String r) -> name = parseValue(r, "", true).replaceAll("[0123456789]", "").trim());
+        put("Nimi", (String r) -> name = parseValue(r, "", true).trim());
         put("Valmistaja", (String r) -> producer = parseValue(r, "", false));
         put("Pullokoko", (String r) -> size = parseValue(r.split(" ", -1)[0].replace(",", "."), 0.0f, false));
         put("Hinta", (String r) -> price = parseValue(r, 0.0f, true));
@@ -178,6 +179,8 @@ public class Item {
 
     long ean;
 
+    String cardTitle;
+
     // Constructor for parsing excel sheet
     public Item (Row r) {
         // Iterates through parsers and tries to fetch data from the given row.
@@ -237,6 +240,10 @@ public class Item {
         return name;
     }
 
+    public String getCardTitle () {
+        return cardTitle.length() < 5 ? name : cardTitle;
+    }
+
     public String getAlcoholAsString() {
         return alcohol > 0 ? alcohol + " %" : "";
     }
@@ -268,6 +275,10 @@ public class Item {
 
     public String getYearAsString() {
         return year > 0 ? String.valueOf(year) : "";
+    }
+
+    public String getProducer () {
+        return producer;
     }
 
     private int parseValue (String str, int def, boolean isRequired) {
@@ -378,6 +389,72 @@ public class Item {
 
     public boolean isValid () {
         return this.isValid;
+    }
+
+    private static String[] filteredWords = {
+            "muovipullo",
+            "50cl",
+            "UKKO",
+            "lahjapakkaus",
+            "brut nature",  "extra Brut",   "brut",
+            "extra sec",    "extra Dry",    "extra trocken",    "extra seco",
+            "sec",          "dry",          "trocken",          "secco",
+            "demi sec",     "halbtrocken",  "medium dry",
+            "sweet",        "doux",         "dolce"
+    };
+
+    public Item createCardTitle () {
+        cardTitle = name;
+
+        // Remove special characters.
+        cardTitle = cardTitle.replaceAll("[-+.^:,*]","");
+
+        // Grab year from name if it's there.
+        String yearFromName = cardTitle.trim().replaceAll("\\D", "");
+
+        if (tryParseInt(yearFromName)) {
+            int yearParsed = Integer.parseInt(yearFromName);
+
+            if (yearParsed > 1900 && yearParsed < 2100) {
+                // If we don't have a year, set it as one.
+                if (year < 1) {
+                    Log.d(TAG, "[gum] found year from name: " + year);
+                    year = yearParsed;
+                }
+
+                cardTitle = cardTitle.replaceAll(yearFromName, "");
+            }
+        }
+
+        // Remove producer from the name.
+        cardTitle = cardTitle.replaceAll(producer, "");
+
+        // Wine specific bubble gum.
+        if (isWine()) {
+            // Remove grapes from the name.
+            for (String s : grapes)
+                cardTitle = cardTitle.replaceAll(s, "");
+        }
+
+        // Remove unwanted words from name.
+        for (String f : filteredWords) {
+            String fCapped = f.substring(0, 1).toUpperCase() + f.substring(1);
+            cardTitle = cardTitle.replaceAll(f, "").replaceAll(fCapped, "");
+        }
+
+        // Remove trailing and leading spaces and double spaces.
+        cardTitle = cardTitle.trim().replaceAll(" +", " ");
+
+        return this;
+    }
+
+    private boolean tryParseInt(String value) {
+        try {
+            Integer.parseInt(value);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 
     // Strictly for debugging purposes.

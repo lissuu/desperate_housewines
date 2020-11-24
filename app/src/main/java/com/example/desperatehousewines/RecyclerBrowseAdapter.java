@@ -32,7 +32,6 @@ public class RecyclerBrowseAdapter extends RecyclerView.Adapter<RecyclerBrowseAd
         public TextView txtAlcohol;
         public TextView txtYear;
 
-
         public ViewHolder(Context c, View v){
             super(v);
             this.context = c;
@@ -70,11 +69,20 @@ public class RecyclerBrowseAdapter extends RecyclerView.Adapter<RecyclerBrowseAd
     public void onBindViewHolder(ViewHolder Vholder, int pos) {
         Item item = items.get(pos);
 
-        Vholder.txtName.setText(item.getName());
+        Vholder.txtName.setText(item.getCardTitle());
         Vholder.txtPrice.setText(item.getPriceAsString());
         Vholder.txtSize.setText(item.getSizeAsString());
         Vholder.txtAlcohol.setText(item.getAlcoholAsString());
-        Vholder.txtYear.setText(item.getYearAsString());
+
+        String year = item.getYearAsString();
+        String producer = item.getProducer();
+
+        if (year.equals("") && producer.equals("")) {
+            Vholder.txtYear.setVisibility(View.GONE);
+        } else {
+
+            Vholder.txtYear.setText((!year.equals("") && !year.equals("")) ? year + " - " + producer : year + producer );
+        }
     }
 
     @Override
