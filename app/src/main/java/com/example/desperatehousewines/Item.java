@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 
-
 public class Item {
     final String TAG = "ITEM";
 
@@ -44,6 +43,7 @@ public class Item {
             this.name = n;
         }
     }
+
     /*
 
         Idx XML Header/JSON Key     Variable    Data Type   Raw Data Example                                Notes
@@ -94,7 +94,7 @@ public class Item {
      */
     Map<String, Consumer<String>> jsonParsers = new HashMap<String, Consumer<String>>() {{
         put("Numero", (String r) -> number = parseValue(r, 1L, true));
-        put("Nimi", (String r) -> name = parseValue(r, "", true).replaceAll("[0123456789]", ""));
+        put("Nimi", (String r) -> name = parseValue(r, "", true).replaceAll("[0123456789]", "").trim());
         put("Valmistaja", (String r) -> producer = parseValue(r, "", false));
         put("Pullokoko", (String r) -> size = parseValue(r.split(" ", -1)[0].replace(",", "."), 0.0f, false));
         put("Hinta", (String r) -> price = parseValue(r, 0.0f, true));
@@ -260,6 +260,10 @@ public class Item {
         }
 
         return false;
+    }
+
+    public int getYear() {
+        return year;
     }
 
     public String getYearAsString() {
