@@ -4,23 +4,18 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.app.ProgressDialog;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
-import android.os.AsyncTask;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import com.android.volley.VolleyError;
-import com.ctc.wstx.io.AsciiReader;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,7 +47,7 @@ public class BrowseActivity extends AppCompatActivity implements RestClient.Call
         recyclerView.setLayoutManager(new GridLayoutManager(context, 2));
 
         // Fetches data from the API and calls RestClient.Callback implementation when Volley is done.
-        RestClient.getInstance(this).get(RestClient.API.LIST, this);
+        RestClient.getInstance(this).get(RestClient.API.LIST, this, this);
 
         /*
          * LISTENERS
@@ -66,7 +61,7 @@ public class BrowseActivity extends AppCompatActivity implements RestClient.Call
             if (keyCode == KEYCODE_ENTER)
                 doSearch();
 
-            return false; // passed lambda for setOnKeyListener requires something to be returned, this value has no meaning in this context.
+            return super.onKeyDown(keyCode, event);
         });
 
         btnClearSearch.setOnClickListener(v -> {
@@ -103,7 +98,7 @@ public class BrowseActivity extends AppCompatActivity implements RestClient.Call
     // Creates and sets a new adapter for recycler view. See RecyclerBrowseAdapter class for
     // further details.
     private void updateRecyclerView (List<Item> items) {
-        recyclerView.setAdapter(new RecyclerBrowseAdapter(context, items));
+        recyclerView.setAdapter(new RecyclerBrowseAdapter(context, items, getSupportFragmentManager()));
     }
 
     // Closes soft keyboard via InputMethodManager.
@@ -135,7 +130,19 @@ public class BrowseActivity extends AppCompatActivity implements RestClient.Call
     // RestClient.Callback implementation
     @Override
     public void onError(VolleyError err) {
-        Log.e(TAG, "volley error!");
+        Log.e(TAG, "volley error!\n" + err.toString());
+
+        AlertDialog alert = new AlertDialog.Builder(this).create();
+        alert.setTitle("Virhe");
+        alert.setMessage("Palvelimeen ei voitu muodostaa yhteyttä");
+        alert.setButton(Dialog.BUTTON_POSITIVE,"OK", new DialogInterface.OnClickListener(){
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                finish();
+            }
+        });
+
+        alert.show();
     }
 
 }
