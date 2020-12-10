@@ -1,6 +1,5 @@
 package com.example.desperatehousewines;
 
-
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -10,14 +9,12 @@ import androidx.annotation.NonNull;
 import org.dhatim.fastexcel.reader.Row;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-
 
 public class Item {
     final String TAG = "ITEM";

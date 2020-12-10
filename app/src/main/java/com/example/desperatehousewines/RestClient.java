@@ -57,8 +57,9 @@ public class RestClient {
     private String TAG = "REST";
 
     private static RestClient instance;
-    private RequestQueue requestQueue;
     private static Context context;
+
+    private RequestQueue requestQueue;
     private JsonArrayRequest jsonArrayRequest;
     private ProgressDialog progressBar;
 
@@ -86,9 +87,10 @@ public class RestClient {
     }
 
     // Call rest API with a callback interface, use the overloaded below if you don't want to use an interface.
-    public void get(API api, Callback cb) {
+    public void get(API api, Callback cb, Context newContext) {
         Log.d(TAG, "get: " + api.toString() + ", url: " + api.url() + ", method: " + api.method());
-        progressBar = new ProgressDialog(context);
+
+        progressBar = new ProgressDialog(newContext);
 
         if (api.hasMsg()) {
             progressBar.setProgressStyle(ProgressDialog.STYLE_SPINNER);
@@ -103,11 +105,10 @@ public class RestClient {
                 public void onResponse(JSONArray response) {
                     Log.d(TAG, "volley done");
                     progressBar.dismiss();
-                    //closeDialog(api);
 
                     switch (api) {
                         case LIST:
-                            new AsyncTaskRunner(context, response, cb).execute();
+                            new AsyncTaskRunner(newContext, response, cb).execute();
                             break;
                         case DRINKS:
                         case SEARCHES:
@@ -138,10 +139,10 @@ public class RestClient {
         Log.d(TAG, "get: " + api.toString() + ", url: " + api.url() + ", method: " + api.method());
 
         jsonArrayRequest = new JsonArrayRequest(
-                api.method(),
-                api.url(),
-                onResponse,
-                onError
+            api.method(),
+            api.url(),
+            onResponse,
+            onError
         );
 
         getRequestQueue().add(jsonArrayRequest);
@@ -262,7 +263,6 @@ public class RestClient {
                 }
             }
 
-
             // Sleeping a thread can cause an exception and thus needs to be enclosed in try catch.
             try {
                 // The user needs to see 100%. For some reason.
@@ -284,7 +284,6 @@ public class RestClient {
 
         @Override
         protected void onProgressUpdate(Integer... progress) {
-            Log.d(TAG, "progress: " + progress[0] + "%");
             progressBar.setProgress(progress[0]);
         }
     }
