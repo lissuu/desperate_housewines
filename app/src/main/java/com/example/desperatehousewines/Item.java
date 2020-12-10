@@ -1,6 +1,8 @@
 package com.example.desperatehousewines;
 
 
+import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -8,9 +10,11 @@ import androidx.annotation.NonNull;
 import org.dhatim.fastexcel.reader.Row;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -43,6 +47,9 @@ public class Item {
         Type(String n) {
             this.name = n;
         }
+
+        @Override
+        public String toString() { return this.name; }
     }
 
     /*
@@ -180,6 +187,7 @@ public class Item {
     long ean;
 
     String cardTitle;
+    String subHeader;
 
     // Constructor for parsing excel sheet
     public Item (Row r) {
@@ -219,21 +227,11 @@ public class Item {
     }
 
     public String getGrapes () {
-        String g = "";
-
-        for (String s : grapes)
-            g += "'" + s + "' ";
-
-        return g;
+        return TextUtils.join(", ", grapes);
     }
 
     public String getKeywords () {
-        String w = "";
-
-        for (String s : keywords)
-            w += "'" + s + "' ";
-
-        return w;
+        return TextUtils.join(", ", keywords);
     }
 
     public String getName () {
@@ -279,6 +277,41 @@ public class Item {
 
     public String getProducer () {
         return producer;
+    }
+
+    public Bundle getBundle () {
+        Bundle b = new Bundle();
+
+        b.putString("number", Long.toString(number));
+        b.putString("name", name);
+        b.putString("producer", producer);
+        b.putString("size", getSizeAsString());
+        b.putString("price", getPriceAsString());
+
+        b.putBoolean("isnew", isNew);
+        b.putString("type", type.toString());
+        b.putString("subtype", subType);
+
+        b.putString("country", country);
+        b.putString("year", getYearAsString());
+        b.putString("area", area);
+
+        b.putString("extralabel", extraLabel);
+        b.putString("extrainfo", extraInfo);
+        b.putString("grapes", getGrapes());
+        b.putString("keywords", getKeywords());
+        b.putString("packagetype", packageType);
+
+        b.putString("stopper", stopper);
+        b.putString("alcohol", getAlcoholAsString());
+        b.putString("selection", selection);
+
+        b.putString("ean", Long.toString(ean));
+
+        b.putString("cardtitle", cardTitle);
+        b.putString("subheader", subHeader);
+
+        return b;
     }
 
     private int parseValue (String str, int def, boolean isRequired) {
@@ -445,7 +478,25 @@ public class Item {
         // Remove trailing and leading spaces and double spaces.
         cardTitle = cardTitle.trim().replaceAll(" +", " ");
 
+        createSubHeader();
         return this;
+    }
+
+    private void createSubHeader() {
+        List<String> sub = new ArrayList<>();
+
+        if (year > 0)
+            sub.add(getYearAsString());
+
+        sub.add(type.toString());
+
+        if (!country.equals(""))
+            sub.add(country);
+
+        if (!producer.equals(""))
+            sub.add(producer);
+
+        subHeader = TextUtils.join(" - ", sub);
     }
 
     private boolean tryParseInt(String value) {
