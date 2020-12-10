@@ -8,19 +8,22 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
 public class RecyclerBrowseAdapter extends RecyclerView.Adapter<RecyclerBrowseAdapter.ViewHolder> {
-    List<Item> items;
-    Context context1;
     static final String TAG = "ADAPTER";
 
+    List<Item> items;
+    Context context1;
+    FragmentManager fm;
 
-    public RecyclerBrowseAdapter(Context c, List<Item> items) {
+    public RecyclerBrowseAdapter(Context c, List<Item> items, FragmentManager fm) {
         this.items = items;
         context1 = c;
+        this.fm = fm;
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -51,8 +54,8 @@ public class RecyclerBrowseAdapter extends RecyclerView.Adapter<RecyclerBrowseAd
 
             if (pos != RecyclerView.NO_POSITION) {
                 Item item = items.get(pos);
-                Log.d(TAG, item.toString());
-                Toast.makeText(context, "position: " + pos, Toast.LENGTH_SHORT).show();
+
+                BrowseDialogFragment.newInstance(item).show(fm, "fragment_edit_name");
             }
         }
     }
@@ -66,22 +69,21 @@ public class RecyclerBrowseAdapter extends RecyclerView.Adapter<RecyclerBrowseAd
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder Vholder, int pos) {
+    public void onBindViewHolder(ViewHolder viewHolder, int pos) {
         Item item = items.get(pos);
 
-        Vholder.txtName.setText(item.getCardTitle());
-        Vholder.txtPrice.setText(item.getPriceAsString());
-        Vholder.txtSize.setText(item.getSizeAsString());
-        Vholder.txtAlcohol.setText(item.getAlcoholAsString());
+        viewHolder.txtName.setText(item.getCardTitle());
+        viewHolder.txtPrice.setText(item.getPriceAsString());
+        viewHolder.txtSize.setText(item.getSizeAsString());
+        viewHolder.txtAlcohol.setText(item.getAlcoholAsString());
 
         String year = item.getYearAsString();
         String producer = item.getProducer();
 
         if (year.equals("") && producer.equals("")) {
-            Vholder.txtYear.setVisibility(View.GONE);
+            viewHolder.txtYear.setVisibility(View.GONE);
         } else {
-
-            Vholder.txtYear.setText((!year.equals("") && !year.equals("")) ? year + " - " + producer : year + producer );
+            viewHolder.txtYear.setText((!year.equals("") && !year.equals("")) ? year + " - " + producer : year + producer );
         }
     }
 

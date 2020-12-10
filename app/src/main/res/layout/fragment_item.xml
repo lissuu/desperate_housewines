@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="?dialogPreferredPadding">
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/innerLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginLeft="0dp"
+        android:layout_marginTop="0dp"
+        android:layout_marginRight="0dp"
+        android:layout_marginBottom="0dp">
+
+        <TextView
+            android:id="@+id/txtFragName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:text="Catena Zapata"
+            android:textAlignment="center"
+            android:textSize="22dp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/txtFragSubHeader"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="2015 - Punaviini - Argentiina - Adrianna Vineyard Fortuna"
+            android:textAlignment="center"
+            android:textSize="12dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/txtFragName" />
+
+        <TextView
+            android:id="@+id/txtFragYear"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="2015"
+            android:textSize="12dp"
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:layout_editor_absoluteY="27dp" />
+
+        <TextView
+            android:id="@+id/txtFragProducer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="Adrianna Vineyard Fortuna Terrae Malbec"
+            android:textSize="12dp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toEndOf="@+id/txtFragCountry"
+            app:layout_constraintTop_toTopOf="@+id/txtFragCountry" />
+
+        <TextView
+            android:id="@+id/txtFragType"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="Punaviini"
+            android:textSize="12dp"
+            android:visibility="gone"
+            app:layout_constraintStart_toEndOf="@+id/txtFragYear"
+            app:layout_constraintTop_toBottomOf="@+id/txtFragName" />
+
+        <TextView
+            android:id="@+id/txtFragCountry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="Argentiina"
+            android:textSize="12dp"
+            android:visibility="gone"
+            app:layout_constraintStart_toEndOf="@+id/txtFragType"
+            app:layout_constraintTop_toTopOf="@+id/txtFragType" />
+
+        <TextView
+            android:id="@+id/txtFragKeywords"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="Täyteläinen, tanniininen, karhunvatukka"
+            android:textSize="16dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/txtFragSubHeader" />
+
+        <TextView
+            android:id="@+id/txtFragPrice"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="84.99 e"
+            android:textAlignment="center"
+            android:textSize="12dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/txtFragSize"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <TextView
+            android:id="@+id/txtFragAlcohol"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="14.0 %"
+            android:textSize="12dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <TextView
+            android:id="@+id/txtFragSize"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="0,75 l"
+            android:textSize="12dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <Button
+            android:id="@+id/btnFragFavorite"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="28dp"
+            android:text="Lisää suosikiksi"
+            android:textSize="10dp"
+            app:layout_constraintBottom_toBottomOf="@+id/txtFragPrice"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/txtFragKeywords" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</RelativeLayout>
