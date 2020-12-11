@@ -53,6 +53,7 @@ public class Item {
 
         Idx XML Header/JSON Key     Variable    Data Type   Raw Data Example                                Notes
             ------------------------------------------------------------------------------------------------------------------
+            id                      id          int         0                                               Auto incremented database ID
         0   Numero	                number      long        945096                                          Is unique
         1   Nimi	                name        String      Adrianna Vineyard Fortuna Terrae Malbec 2015    -
         2   Valmistaja	            producer    String      Catena Zapata                                   -
@@ -89,6 +90,38 @@ public class Item {
         28  Valikoima               selection   String      tilausvalikoima                                 -
         29  EAN                     ean         long        7794450005274                                   Almost unique, but less than 'Numero'.
 
+    Raw JSON example:
+        "id":217839,
+        "Numero":945096,
+        "Nimi":"Adrianna Vineyard Fortuna Terrae Malbec 2015",
+        "Valmistaja":"Catena Zapata",
+        "Pullokoko":"0,75 l",
+        "Hinta":85,
+        "Litrahinta":113.3,
+        "Uutuus":"",
+        "Hinnastojarjestyskoodi":110,
+        "Tyyppi":"punaviinit",
+        "Alatyyppi":"MehevÃ¤ & Hilloinen",
+        "Erityisryhma":"",
+        "Oluttyyppi":"",
+        "Valmistusmaa":"Argentiina",
+        "Alue":"Mendoza",
+        "Vuosikerta":2015,
+        "Etikettimerkintoja":"",
+        "Huomautus":"",
+        "Rypaleet":"Malbec, ",
+        "Luonnehdinta":"TÃ¤ytelÃ¤inen, tanniininen, karhunvatukkainen, mausteinen, aromikas",
+        "Pakkaustyyppi":"pullo",
+        "Suljentatyyppi":"luonnonkorkki",
+        "Alkoholi_prosentti":14,
+        "Hapot_g_l":5.6,
+        "Sokeri_g_l":2,
+        "Kantavierreprosentti":0,
+        "Vari_EBC":0,
+        "Katkerot_EBU":0,
+        "Energia_kcal_100_ml":80,
+        "Valikoima":"tilausvalikoima",
+        "EAN":2147483647
 
     Parser HashMap
             Key     JSON's key
@@ -98,6 +131,8 @@ public class Item {
                     Consumer<T> details: https://docs.oracle.com/javase/8/docs/api/java/util/function/Consumer.html
      */
     Map<String, Consumer<String>> jsonParsers = new HashMap<String, Consumer<String>>() {{
+        put("id", (String r) -> id = parseValue(r, 0, true));
+
         put("Numero", (String r) -> number = parseValue(r, 1L, true));
         put("Nimi", (String r) -> name = parseValue(r, "", true).trim());
         put("Valmistaja", (String r) -> producer = parseValue(r, "", false));
@@ -156,6 +191,8 @@ public class Item {
 
     // Starts as true (valid) and set to false by the parsers if the data is required.
     boolean isValid = true;
+
+    int id;
 
     long number;
     String name;
@@ -279,6 +316,7 @@ public class Item {
     public Bundle getBundle () {
         Bundle b = new Bundle();
 
+        b.putInt("id", id);
         b.putString("number", Long.toString(number));
         b.putString("name", name);
         b.putString("producer", producer);
@@ -309,6 +347,10 @@ public class Item {
         b.putString("subheader", subHeader);
 
         return b;
+    }
+
+    public int getId() {
+        return id;
     }
 
     private int parseValue (String str, int def, boolean isRequired) {

@@ -6,32 +6,30 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
 import android.widget.EditText;
 
 import com.android.volley.VolleyError;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static android.view.KeyEvent.KEYCODE_ENTER;
 
-public class BrowseActivity extends AppCompatActivity implements RestClient.Callback {
+public class BrowseActivity extends AppCompatActivity implements RestClient.AsyncData {
     static final String TAG = "BROWSE";
 
-    protected List<Item> items = new ArrayList<Item>();
+    private Context context;
+    private RecyclerView recyclerView;
+    private EditText inpSearch;
 
-    Context context;
-    RecyclerView recyclerView;
-    EditText inpSearch;
-    Button btnSearch;
-    Button btnClearSearch;
+    private ProgressDialog loadDialog;
+    private ProgressDialog parsingDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,19 +39,17 @@ public class BrowseActivity extends AppCompatActivity implements RestClient.Call
         context = getApplicationContext();
         recyclerView = findViewById(R.id.recyclerBrowse);
         inpSearch = findViewById(R.id.inpSearch);
-        btnSearch = findViewById(R.id.btnSearch);
-        btnClearSearch = findViewById(R.id.btnClearSearch);
 
         recyclerView.setLayoutManager(new GridLayoutManager(context, 2));
 
         // Fetches data from the API and calls RestClient.Callback implementation when Volley is done.
-        RestClient.getInstance(this).get(RestClient.API.LIST, this, this);
+        RestClient.getInstance(this).getList(this);
 
         /*
          * LISTENERS
          */
 
-        btnSearch.setOnClickListener(v -> {
+        findViewById(R.id.btnSearch).setOnClickListener(v -> {
             doSearch();
         });
 
@@ -64,7 +60,7 @@ public class BrowseActivity extends AppCompatActivity implements RestClient.Call
             return super.onKeyDown(keyCode, event);
         });
 
-        btnClearSearch.setOnClickListener(v -> {
+        findViewById(R.id.btnClearSearch).setOnClickListener(v -> {
             clearSearch();
         });
     }
@@ -121,13 +117,40 @@ public class BrowseActivity extends AppCompatActivity implements RestClient.Call
         }
     }
 
-    // RestClient.Callback implementation
+    @Override
+    public void onPreExecute() {
+        loadDialog = new ProgressDialog(this);
+        loadDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        loadDialog.setProgressNumberFormat(null);
+        loadDialog.setMessage("Ladataan tietoja...");
+        loadDialog.show();
+    }
+
     @Override
     public void onResponse() {
+        loadDialog.dismiss();
+
+        // Initialize progress bar.
+        parsingDialog = new ProgressDialog(this);
+        parsingDialog.setMessage("Käsitellään tietoja...");
+        parsingDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        parsingDialog.setProgressNumberFormat(null);
+        parsingDialog.setProgress(0);
+        parsingDialog.setMax(100);
+        parsingDialog.show();
+    }
+
+    @Override
+    public void onTaskUpdate(int val) {
+        parsingDialog.setProgress(val);
+    }
+
+    @Override
+    public void onTaskDone() {
+        parsingDialog.dismiss();
         updateRecyclerView(RestClient.getInstance(this).getItems());
     }
 
-    // RestClient.Callback implementation
     @Override
     public void onError(VolleyError err) {
         Log.e(TAG, "volley error!\n" + err.toString());
@@ -144,5 +167,6 @@ public class BrowseActivity extends AppCompatActivity implements RestClient.Call
 
         alert.show();
     }
+
 
 }
