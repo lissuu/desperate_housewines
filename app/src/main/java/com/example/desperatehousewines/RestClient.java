@@ -2,6 +2,7 @@ package com.example.desperatehousewines;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.android.volley.Request;
@@ -16,23 +17,22 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class RestClient {
     public enum API {
-        // GET
-        LIST("alko-lista", Request.Method.GET),
+        FETCH_ITEMS("alko-lista", Request.Method.GET),
+
+        FETCH_DRINKS("omat-juomat", Request.Method.GET),
+        ADD_DRINK("omat-juomat", Request.Method.POST),
+        REMOVE_DRINK("omat-juomat", Request.Method.DELETE),
+
         SEARCHES("haut", Request.Method.GET),
         CONSUMERS("kuluttajat", Request.Method.GET),
-        DRINKS("omat-juomat", Request.Method.GET),
         SERVICES("palvelut", Request.Method.GET),
-        NEW_USER("uusi_kayttaja", Request.Method.GET),
-
-        // POST
-        ADD_FAVORITE("omat-juomat", Request.Method.POST),
-
-        // DELETE
-        REMOVE_FAVORITE("omat-juomat", Request.Method.DELETE)
+        NEW_USER("uusi_kayttaja", Request.Method.GET)
         ;
 
         private final String request;
@@ -52,23 +52,42 @@ public class RestClient {
         int method() {
             return method;
         }
+
+        public enum USER {
+            USER("kayttaja"),
+            SERVICE("palvelu");
+
+            private final String dbStr;
+
+            USER(String s) {
+                this.dbStr = s;
+            }
+
+            public String str() {
+                return this.dbStr;
+            }
+        }
     }
 
     public interface Callback {
-        void onError(VolleyError err);
+        void onError(API api, VolleyError err);
+    }
+
+    public interface Response extends Callback {
+        void onResponse(API api);
     }
 
     public interface ResponseObject extends Callback {
-        void onResponse(JSONObject resp);
+        void onResponse(API api, JSONObject resp);
     }
 
     public interface ResponseArray extends Callback {
-        void onResponse(JSONArray resp);
+        void onResponse(API api, JSONArray resp);
     }
 
     public interface AsyncData extends Callback {
         void onPreExecute();
-        void onResponse();
+        void onResponse(API api);
         void onTaskUpdate(int val);
         void onTaskDone();
     }
@@ -80,15 +99,22 @@ public class RestClient {
 
     private RequestQueue requestQueue;
 
-    private List<Item> items;
-    private String userHash = "blankUserHash";
-    private String userName = "blankUserName";
+    // Contains parsed data.
+    private List<Item> items = new ArrayList<>();
 
+    // item's id, database id
+    private Map<Integer, Integer> userItems = new HashMap<Integer, Integer>();
+
+    // "Logged user"
+    private String userHash = "blankUserHash";
+
+    // Singleton's constructor.
     private RestClient(Context context) {
         this.context = context;
         requestQueue = getRequestQueue();
     }
 
+    // Call to fetch instance to use this class.
     public static synchronized RestClient getInstance(Context context) {
         if (instance == null)
             instance = new RestClient(context);
@@ -96,6 +122,7 @@ public class RestClient {
         return instance;
     }
 
+    // Add requests to this queue.
     public RequestQueue getRequestQueue() {
         if (requestQueue == null)
             requestQueue = Volley.newRequestQueue(context.getApplicationContext());
@@ -103,93 +130,103 @@ public class RestClient {
         return requestQueue;
     }
 
-    public void getList(AsyncData cb) {
-        API api = API.LIST;
-        Log.d(TAG, "get: " + api.toString() + ", url: " + api.url() + ", method: " + api.method());
+    // Downloads JSON data and continues to parse it in an AsyncTask afterwards.
+    public void fetchItemData(AsyncData cb) {
+        Log.d(TAG, "get: " + API.FETCH_ITEMS.toString() + ", url: " + API.FETCH_ITEMS.url() + ", method: " + API.FETCH_ITEMS.method());
 
         cb.onPreExecute();
 
-        getRequestQueue().add(new JsonArrayRequest(api.method(), api.url(),
-                response -> {
-                    cb.onResponse();
-                    new AsyncTaskRunner(response, cb).execute();
-                },
-                error -> cb.onError(error)
+        getRequestQueue().add(new JsonArrayRequest(API.FETCH_ITEMS.method(), API.FETCH_ITEMS.url(),
+            response -> {
+                cb.onResponse(API.FETCH_ITEMS);
+                new AsyncTaskRunner(response, cb).execute();
+            },
+            error -> cb.onError(API.FETCH_ITEMS, error)
         ));
     }
 
-    public void addFavorite(ResponseObject cb, int id, int rating) {
+    // Overload for adding items for user
+    public void addDrink(Response cb, int id) {
+        addDrink(cb, id, -1, API.USER.SERVICE);
+    }
+
+    // Overload for adding item for services
+    public void addDrink(Response cb, int id, int rating) {
+        addDrink(cb, id, rating, API.USER.USER);
+    }
+
+    // Base method for aforementioned methods, not to be used outside this class.
+    private void addDrink(Response cb, int id, int rating, API.USER user) {
+        Log.d(TAG, "addItem id: " + id + ", rating: " + rating + ", api: " + user.toString());
+
         try {
             JSONObject data = new JSONObject();
 
             data.put("user_hash", userHash);
             data.put("juoma_id", id);
-            data.put("kayttaja", userName);
+            data.put("kayttaja", user.str());
             data.put("arvio", rating);
 
-            getObjectData(cb, API.ADD_FAVORITE, data);
+            getRequestQueue().add(new JsonObjectRequest(API.ADD_DRINK.method(), API.ADD_DRINK.url(), data,
+                    response -> {
+                        cb.onResponse(API.ADD_DRINK);
+                    },
+                    error -> cb.onError(API.ADD_DRINK, error))
+            );
         } catch (JSONException e) {
             e.printStackTrace();
         }
     }
 
-    public void removeFavorite(ResponseObject cb, int id) {
-        try {
-            JSONObject data = new JSONObject();
+    // Removes user/service drink by drink id which is then resolved to a database id.
+    public void removeDrink(Response cb, int id) {
+        Log.d(TAG, "removeDrink id: " + id);
 
-            data.put("id", id);
-            getObjectData(cb, API.REMOVE_FAVORITE, data);
-        } catch (JSONException e) {
-            e.printStackTrace();
+        if (userItems.containsKey(id)) {
+            int dbid = userItems.get(id);
+
+            Log.d(TAG, "removing a drink with database id: " + dbid);
+
+            getRequestQueue().add(new JsonObjectRequest(API.REMOVE_DRINK.method(), API.REMOVE_DRINK.url() + "/" + dbid,
+                    response -> {
+                        cb.onResponse(API.REMOVE_DRINK);
+                    },
+                    error -> cb.onError(API.REMOVE_DRINK, error))
+            );
+        } else {
+            Log.e(TAG, "can't resolve database id, dumping userItems:\n" + getUserItemsAsString());
         }
     }
 
-    public void getFavorites(ResponseArray cb) {
-        getArrayData(cb, API.DRINKS);
-    }
+    // Downloads user's saved drinks and adds them to userItems hashmap.
+    public void fetchUserItems(Response cb) {
+        getRequestQueue().add(new JsonArrayRequest(API.FETCH_DRINKS.method(), API.FETCH_DRINKS.url() + "/" + userHash, response -> {
+            Log.d(TAG, "clearing " + userItems.size() + " user items before fetching new");
 
-    public void getNewUser(ResponseObject cb) {
-        getObjectData(cb, API.NEW_USER);
-    }
+            userItems.clear();
+            int len = response.length();
 
-    public void getSearches(ResponseArray cb) {
-        getArrayData(cb, API.SEARCHES);
-    }
+            for (int i = 0; i < len; i++) {
+                try {
+                    JSONObject row = response.getJSONObject(i);
+                    int id = row.getInt("juoma_id");
+                    int dbId = row.getInt("id");
 
-    public void getUsers(ResponseArray cb) {
-        getArrayData(cb, API.CONSUMERS);
+                    if (id >= 0 && dbId >= 0 && getItemById(id) != null) {
+                        Log.d(TAG, "added user item with an id: " + id);
+                        userItems.put(id, dbId);
+                    }
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            Log.d(TAG, "added " + userItems.size() + "/" + len + " user items");
+            cb.onResponse(API.FETCH_DRINKS);
+        }, error -> cb.onError(API.FETCH_DRINKS, error)));
     }
     
-    public void getServices(ResponseArray cb) {
-        getArrayData(cb, API.SERVICES);
-    }
-
-    private void getArrayData(ResponseArray cb, API api) {
-        getArrayData(cb, api, null);
-    }
-
-    private void getArrayData(ResponseArray cb, API api, JSONObject data) {
-        Log.d(TAG, "get: " + api.toString() + ", url: " + api.url() + ", method: " + api.method() + ", data: " + data.toString());
-
-        getRequestQueue().add(data == null ?
-            new JsonArrayRequest(api.method(), api.url(), response -> cb.onResponse(response), error -> cb.onError(error)) :
-            new JsonArrayRequest(api.method(), api.url(), data, response -> cb.onResponse(response), error -> cb.onError(error))
-        );
-    }
-
-    private void getObjectData(ResponseObject cb, API api) {
-        getObjectData(cb, api, null);
-    }
-
-    private void getObjectData(ResponseObject cb, API api, JSONObject data) {
-        Log.d(TAG, "get: " + api.toString() + ", url: " + api.url() + ", method: " + api.method() + ", data: " + data.toString());
-
-        getRequestQueue().add(data == null ?
-            new JsonObjectRequest(api.method(), api.url(), response -> cb.onResponse(response), error -> cb.onError(error)) :
-            new JsonObjectRequest(api.method(), api.url(), data, response -> cb.onResponse(response), error -> cb.onError(error))
-        );
-    }
-
     public List<Item> getItems () {
         return items;
     }
@@ -237,14 +274,58 @@ public class RestClient {
         return result;
     }
 
+    public Item getItemById (int id) {
+        for (Item i : items) {
+            int item = i.getId();
+
+            if (item == id) {
+                return i;
+            }
+        }
+
+        return null;
+    }
+
+    public List<Item> getUserItems() {
+        Log.d(TAG, "getUserItems, has " + userItems.size() + " items");
+
+        List<Item> user = new ArrayList<>();
+
+        userItems.forEach((k, v) -> {
+            Log.d(TAG, "\tid: " + k + " (db id: " + v + ")");
+            Item item = getItemById(k);
+
+            if (item != null)
+                user.add(item);
+        });
+
+        return user;
+    }
+
+    public boolean isUserItem (int id) {
+        return userItems.containsKey(id);
+        //return userItems.containsAll(Arrays.asList(id));
+    }
+
     // Debugging purposes only
-    public void itemsToString (List<Item> itemList) {
+    public void printItems (List<Item> itemList) {
         Log.d(TAG, "item list size: " + itemList.size());
 
         for (Item i : itemList)
             Log.d(TAG, i.toString());
     }
 
+    public String getUserItemsAsString () {
+        Log.d(TAG, "userItem list size: " + userItems.size());
+
+        List<String> s = new ArrayList<>();
+        userItems.forEach((k, v) -> s.add("\tkey: " + k + ", value: " + v));
+
+        return TextUtils.join("\n", s);
+    }
+
+    // AsyncTask class to parse JSON blob generated from Alko_list table. This is a heavy process
+    // and, depending on a phone, can take anywhere from 10 to 30 seconds.
     private class AsyncTaskRunner extends AsyncTask<String, Integer, String> {
         private JSONArray array;
         private AsyncData cb;

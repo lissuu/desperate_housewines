@@ -6,6 +6,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import org.apache.commons.codec.binary.StringUtils;
 import org.dhatim.fastexcel.reader.Row;
 import org.json.JSONException;
 import org.json.JSONObject;

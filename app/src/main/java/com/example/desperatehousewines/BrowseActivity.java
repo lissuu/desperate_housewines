@@ -8,7 +8,6 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -21,7 +20,7 @@ import java.util.List;
 
 import static android.view.KeyEvent.KEYCODE_ENTER;
 
-public class BrowseActivity extends AppCompatActivity implements RestClient.AsyncData {
+public class BrowseActivity extends AppCompatActivity implements RestClient.AsyncData, RestClient.Response {
     static final String TAG = "BROWSE";
 
     private Context context;
@@ -40,16 +39,29 @@ public class BrowseActivity extends AppCompatActivity implements RestClient.Asyn
         recyclerView = findViewById(R.id.recyclerBrowse);
         inpSearch = findViewById(R.id.inpSearch);
 
+        // Dialog inits
+        loadDialog = new ProgressDialog(this);
+        loadDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        loadDialog.setProgressNumberFormat(null);
+        loadDialog.setMessage("Ladataan tietoja...");
+
+        parsingDialog = new ProgressDialog(this);
+        parsingDialog.setMessage("Käsitellään tietoja...");
+        parsingDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        parsingDialog.setProgressNumberFormat(null);
+        parsingDialog.setProgress(0);
+        parsingDialog.setMax(100);
+
         recyclerView.setLayoutManager(new GridLayoutManager(context, 2));
 
-        // Fetches data from the API and calls RestClient.Callback implementation when Volley is done.
-        RestClient.getInstance(this).getList(this);
+        // Fetches drink data from the API and calls RestClient.Callback.AsyncData implementation when Volley is done.
+        RestClient.getInstance(this).fetchItemData(this);
 
-        /*
-         * LISTENERS
-         */
+        /* LISTENERS */
+        findViewById(R.id.btnSearch).setOnClickListener(v -> doSearch());
 
-        findViewById(R.id.btnSearch).setOnClickListener(v -> {
+        findViewById(R.id.btnClearSearch).setOnClickListener(v -> {
+            inpSearch.setText("");
             doSearch();
         });
 
@@ -59,10 +71,6 @@ public class BrowseActivity extends AppCompatActivity implements RestClient.Asyn
 
             return super.onKeyDown(keyCode, event);
         });
-
-        findViewById(R.id.btnClearSearch).setOnClickListener(v -> {
-            clearSearch();
-        });
     }
 
     // Tries to determine from user given input what was meant to be searched. Search string is
@@ -71,24 +79,23 @@ public class BrowseActivity extends AppCompatActivity implements RestClient.Asyn
         closeKeyboard();
         String search = inpSearch.getText().toString().toLowerCase().trim();
 
+        Log.d(TAG, "doSearch: " + search);
+
         if (search.equals("")) {
-            // Clear
+            // Clear searches and show all items.
             updateRecyclerView(RestClient.getInstance(this).getItems());
-            return;
+            Log.d(TAG, "search cleared");
         } else if (tryParseInt(search)) {
             // Search by year
             updateRecyclerView(RestClient.getInstance(this).getItemsByYear(Integer.parseInt(search)));
+            Log.d(TAG, "searching by year");
+
         } else {
             // Search by name
             updateRecyclerView(RestClient.getInstance(this).getItemsByName(search));
-        }
-    }
+            Log.d(TAG, "searching by name");
 
-    // Function for clearing search input and restoring view to its non-searched look.
-    private void clearSearch() {
-        closeKeyboard();
-        inpSearch.setText("");
-        updateRecyclerView(null);
+        }
     }
 
     // Creates and sets a new adapter for recycler view. See RecyclerBrowseAdapter class for
@@ -107,7 +114,7 @@ public class BrowseActivity extends AppCompatActivity implements RestClient.Asyn
         }
     }
 
-    // Returns true if given string can be parsed to an integer.
+    // Returns true/false if a given string can be parsed to an integer.
     private boolean tryParseInt(String value) {
         try {
             Integer.parseInt(value);
@@ -117,56 +124,63 @@ public class BrowseActivity extends AppCompatActivity implements RestClient.Asyn
         }
     }
 
+    // Called before parsing starts and after volley has finished downloading JSON.
     @Override
     public void onPreExecute() {
-        loadDialog = new ProgressDialog(this);
-        loadDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        loadDialog.setProgressNumberFormat(null);
-        loadDialog.setMessage("Ladataan tietoja...");
+        Log.d(TAG, "onPreExecute");
+
         loadDialog.show();
     }
 
+    // Called when a JSON has been downloaded.
     @Override
-    public void onResponse() {
-        loadDialog.dismiss();
+    public void onResponse(RestClient.API api) {
+        Log.d(TAG, "onResponse: " + api.toString());
 
-        // Initialize progress bar.
-        parsingDialog = new ProgressDialog(this);
-        parsingDialog.setMessage("Käsitellään tietoja...");
-        parsingDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        parsingDialog.setProgressNumberFormat(null);
-        parsingDialog.setProgress(0);
-        parsingDialog.setMax(100);
-        parsingDialog.show();
+        switch (api) {
+            case FETCH_ITEMS:
+                // Hide data downloading dialog and show parsing dialog.
+                loadDialog.dismiss();
+                parsingDialog.show();
+            break;
+
+            case FETCH_DRINKS:
+
+            break;
+
+            default: Log.e(TAG, "onResponse api switch defaults: " + api.toString());
+        }
     }
 
+    // AsyncTask's publishProgress calls this every percent it completes itself.
     @Override
     public void onTaskUpdate(int val) {
         parsingDialog.setProgress(val);
     }
 
+    // Called when AsyncTask has been finished.
     @Override
     public void onTaskDone() {
+        Log.d(TAG, "onTaskDone");
+
+        // Hide parsing dialog and update adapter to show data.
         parsingDialog.dismiss();
         updateRecyclerView(RestClient.getInstance(this).getItems());
+
+        // Fetches user added drinks
+        RestClient.getInstance(this).fetchUserItems(this);
     }
 
+    // Called on volley error.
     @Override
-    public void onError(VolleyError err) {
+    public void onError(RestClient.API api, VolleyError err) {
         Log.e(TAG, "volley error!\n" + err.toString());
 
         AlertDialog alert = new AlertDialog.Builder(this).create();
         alert.setTitle("Virhe");
         alert.setMessage("Palvelimeen ei voitu muodostaa yhteyttä");
-        alert.setButton(Dialog.BUTTON_POSITIVE,"OK", new DialogInterface.OnClickListener(){
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                finish();
-            }
-        });
+        alert.setButton(Dialog.BUTTON_POSITIVE,"OK", (dialog, which) -> finish());
 
         alert.show();
     }
-
-
 }

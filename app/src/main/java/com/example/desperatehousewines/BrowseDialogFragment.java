@@ -1,9 +1,11 @@
 package com.example.desperatehousewines;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -12,11 +14,13 @@ import androidx.fragment.app.DialogFragment;
 
 import com.android.volley.VolleyError;
 
-import org.json.JSONObject;
-
-public class BrowseDialogFragment extends DialogFragment implements RestClient.ResponseObject {
+public class BrowseDialogFragment extends DialogFragment implements RestClient.Response {
     private static String TAG = "FRAG-ITEM";
+
     private int id = 0;
+    private boolean isFavorite = true;
+
+    private Button btnFavorite;
 
     public BrowseDialogFragment() { }
 
@@ -37,6 +41,7 @@ public class BrowseDialogFragment extends DialogFragment implements RestClient.R
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        btnFavorite = view.findViewById(R.id.btnFragFavorite);
         Bundle b = getArguments();
 
         id = b.getInt("id");
@@ -50,18 +55,45 @@ public class BrowseDialogFragment extends DialogFragment implements RestClient.R
         ((TextView) view.findViewById(R.id.txtFragName)).setText(cardtitle.equals("") ? name : cardtitle);
         ((TextView) view.findViewById(R.id.txtFragSubHeader)).setText(b.getString("subheader"));
 
-        view.findViewById(R.id.btnFragFavorite).setOnClickListener((v -> {
-            RestClient.getInstance(getContext()).addFavorite(this, id, 0);
+        setThisFavorite();
+
+        btnFavorite.setOnClickListener((v -> {
+            if (isFavorite) {
+                RestClient.getInstance(getContext()).removeDrink(this, id);
+            } else {
+                RestClient.getInstance(getContext()).addDrink(this, id, 0);
+            }
         }));
     }
 
+    private boolean setThisFavorite() {
+        // Placeholder
+        isFavorite = RestClient.getInstance(getContext()).isUserItem(id);
+
+        btnFavorite.setText(isFavorite ? "Poista suosikeista" : "Lisää suosikiksi");
+        return isFavorite;
+    }
+
     @Override
-    public void onError(VolleyError err) {
+    public void onError(RestClient.API api, VolleyError err) {
         Toast.makeText(getContext(), "Palvelinvirhe", Toast.LENGTH_LONG).show();
     }
 
     @Override
-    public void onResponse(JSONObject resp) {
-        Toast.makeText(getContext(), "Lisätty", Toast.LENGTH_LONG).show();
+    public void onResponse(RestClient.API api) {
+        switch (api) {
+            case REMOVE_DRINK:
+            case ADD_DRINK:
+                RestClient.getInstance(getContext()).fetchUserItems(this);
+                Toast.makeText(getContext(), setThisFavorite() ? "Lisätty" : "Poistettu", Toast.LENGTH_LONG).show();
+            break;
+
+            case FETCH_DRINKS:
+                setThisFavorite();
+            break;
+
+            default:
+                Log.e(TAG, "onResponse switch defaults: " + api.toString());
+        }
     }
 }
