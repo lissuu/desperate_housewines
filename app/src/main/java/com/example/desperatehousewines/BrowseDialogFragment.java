@@ -67,10 +67,9 @@ public class BrowseDialogFragment extends DialogFragment implements RestClient.R
     }
 
     private boolean setThisFavorite() {
-        // Placeholder
         isFavorite = RestClient.getInstance(getContext()).isUserItem(id);
+        btnFavorite.setText(isFavorite ? "Poista omista juomista" : "Lisää omiin juomiin");
 
-        btnFavorite.setText(isFavorite ? "Poista suosikeista" : "Lisää suosikiksi");
         return isFavorite;
     }
 
@@ -79,6 +78,8 @@ public class BrowseDialogFragment extends DialogFragment implements RestClient.R
         Toast.makeText(getContext(), "Palvelinvirhe", Toast.LENGTH_LONG).show();
     }
 
+    // onResponse is called when a drink has been added or removed and a new list will be fetched
+    // afterwards. It's a lazy solution.
     @Override
     public void onResponse(RestClient.API api) {
         switch (api) {

@@ -226,7 +226,7 @@ public class RestClient {
             cb.onResponse(API.FETCH_DRINKS);
         }, error -> cb.onError(API.FETCH_DRINKS, error)));
     }
-    
+
     public List<Item> getItems () {
         return items;
     }
@@ -304,7 +304,6 @@ public class RestClient {
 
     public boolean isUserItem (int id) {
         return userItems.containsKey(id);
-        //return userItems.containsAll(Arrays.asList(id));
     }
 
     // Debugging purposes only
