@@ -233,7 +233,7 @@ public class RestClient {
 
     // Searches items list by name with 'contains' method. Case is ignored and a match can be at any
     // string position.
-    public List<Item> getItemsByName (String search) {
+    public List<Item> getItemsByName (String search, List<Item> it) {
         List<Item> result = new ArrayList<Item>();
 
         if (search.equals(""))
@@ -241,7 +241,7 @@ public class RestClient {
 
         Log.d(TAG, "name search called with '" + search + "'");
 
-        for (Item i : items) {
+        for (Item i : it) {
             String itemName = i.getName().toLowerCase();
 
             if (itemName.contains(search)) {
@@ -256,12 +256,12 @@ public class RestClient {
 
     // Searches items list by a year.
     // Note: alko's api has a lot of blanks for this information
-    public List<Item> getItemsByYear (int search) {
+    public List<Item> getItemsByYear (int search, List<Item> it) {
         List<Item> result = new ArrayList<Item>();
 
         Log.d(TAG, "year search called with '" + search + "'");
 
-        for (Item i : items) {
+        for (Item i : it) {
             int item = i.getYear();
 
             if (item == search) {

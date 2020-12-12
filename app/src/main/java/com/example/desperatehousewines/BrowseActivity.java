@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import com.android.volley.VolleyError;
 
@@ -26,9 +27,13 @@ public class BrowseActivity extends AppCompatActivity implements RestClient.Asyn
     private Context context;
     private RecyclerView recyclerView;
     private EditText inpSearch;
+    private TextView txtAllDrinks;
+    private TextView txtUserDrinks;
 
     private ProgressDialog loadDialog;
     private ProgressDialog parsingDialog;
+
+    private boolean isShowAll = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,7 +43,9 @@ public class BrowseActivity extends AppCompatActivity implements RestClient.Asyn
         context = getApplicationContext();
         recyclerView = findViewById(R.id.recyclerBrowse);
         inpSearch = findViewById(R.id.inpSearch);
-
+        txtAllDrinks = findViewById(R.id.txtAllItems);
+        txtUserDrinks = findViewById(R.id.txtUserItems);
+        
         // Dialog inits
         loadDialog = new ProgressDialog(this);
         loadDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
@@ -58,41 +65,54 @@ public class BrowseActivity extends AppCompatActivity implements RestClient.Asyn
         RestClient.getInstance(this).fetchItemData(this);
 
         /* LISTENERS */
-        findViewById(R.id.btnSearch).setOnClickListener(v -> doSearch());
 
+        // Search buttons
+        findViewById(R.id.btnSearch).setOnClickListener(v -> doSearch());
         findViewById(R.id.btnClearSearch).setOnClickListener(v -> {
             inpSearch.setText("");
             doSearch();
         });
 
+        // Key listener for detecting "enter" on search box.
         inpSearch.setOnKeyListener((v, keyCode, event) -> {
             if (keyCode == KEYCODE_ENTER)
                 doSearch();
 
             return super.onKeyDown(keyCode, event);
         });
+
+        // Buttons for switching between all drinks and user's drinks.
+        txtAllDrinks.setOnClickListener(v -> showAllOrUser(true));
+        txtUserDrinks.setOnClickListener(v -> showAllOrUser(false));
+    }
+
+    // Method for switching between showing all or user drinks.
+    private void showAllOrUser(boolean showAll) {
+        isShowAll = showAll;
+
+        updateRecyclerView(isShowAll ? RestClient.getInstance(this).getItems() : RestClient.getInstance(this).getUserItems());
     }
 
     // Tries to determine from user given input what was meant to be searched. Search string is
     // always lower cased and trimmed out of leading and trailing spaces.
     private void doSearch() {
-        closeKeyboard();
         String search = inpSearch.getText().toString().toLowerCase().trim();
-
         Log.d(TAG, "doSearch: " + search);
+
+        closeKeyboard();
+        List<Item> items = isShowAll ? RestClient.getInstance(this).getItems() : RestClient.getInstance(this).getUserItems();
 
         if (search.equals("")) {
             // Clear searches and show all items.
-            updateRecyclerView(RestClient.getInstance(this).getItems());
+            updateRecyclerView(items);
             Log.d(TAG, "search cleared");
         } else if (tryParseInt(search)) {
             // Search by year
-            updateRecyclerView(RestClient.getInstance(this).getItemsByYear(Integer.parseInt(search)));
+            updateRecyclerView(RestClient.getInstance(this).getItemsByYear(Integer.parseInt(search), items));
             Log.d(TAG, "searching by year");
-
         } else {
             // Search by name
-            updateRecyclerView(RestClient.getInstance(this).getItemsByName(search));
+            updateRecyclerView(RestClient.getInstance(this).getItemsByName(search, items));
             Log.d(TAG, "searching by name");
 
         }
@@ -128,7 +148,6 @@ public class BrowseActivity extends AppCompatActivity implements RestClient.Asyn
     @Override
     public void onPreExecute() {
         Log.d(TAG, "onPreExecute");
-
         loadDialog.show();
     }
 
@@ -165,7 +184,7 @@ public class BrowseActivity extends AppCompatActivity implements RestClient.Asyn
 
         // Hide parsing dialog and update adapter to show data.
         parsingDialog.dismiss();
-        updateRecyclerView(RestClient.getInstance(this).getItems());
+        showAllOrUser(true);
 
         // Fetches user added drinks
         RestClient.getInstance(this).fetchUserItems(this);

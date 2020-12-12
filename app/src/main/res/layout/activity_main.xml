@@ -9,7 +9,7 @@
     <Button
         android:id="@+id/btnToSettings"
         android:layout_width="0dp"
-        android:layout_height="52dp"
+        android:layout_height="56dp"
         android:layout_marginTop="24dp"
         android:text="Asetukset"
         app:layout_constraintEnd_toEndOf="@+id/btnToCollection"
@@ -19,33 +19,35 @@
 
     <TextView
         android:id="@+id/txtMainHeader"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="96dp"
-        android:text="Jesus Juice"
+        android:layout_width="414dp"
+        android:layout_height="120dp"
+        android:background="@color/button_background"
+        android:fontFamily="@font/open_sans"
+        android:gravity="center"
+        android:text="Juoksuviini"
         android:textAppearance="@style/TextAppearance.AppCompat.Large"
         android:textSize="46sp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/btnToBrowse"
-        android:layout_width="161dp"
-        android:layout_height="52dp"
-        android:layout_marginTop="124dp"
+        android:layout_width="180dp"
+        android:layout_height="56dp"
+        android:layout_marginTop="240dp"
         android:text="Selaa viinejä"
         android:textAllCaps="true"
-        android:textAppearance="@style/TextAppearance.MaterialComponents.Button"
-        android:textColor="#FFFFFF"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.484"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/txtMainHeader" />
 
     <Button
         android:id="@+id/btnToCollection"
         android:layout_width="0dp"
-        android:layout_height="52dp"
+        android:layout_height="56dp"
         android:layout_marginTop="24dp"
         android:text="Omat viinit"
         app:layout_constraintEnd_toEndOf="@+id/btnToBrowse"
@@ -61,6 +63,7 @@
         android:text="“What wine goes with Captain Crunch?”"
         android:textAppearance="@style/TextAppearance.AppCompat.Small"
         android:textSize="10sp"
+        android:visibility="invisible"
         app:layout_constraintEnd_toEndOf="@+id/txtMainHeader"
         app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="@+id/txtMainHeader"
@@ -68,13 +71,26 @@
 
     <Button
         android:id="@+id/btnLogout"
-        android:layout_width="72dp"
-        android:layout_height="37dp"
-        android:layout_marginEnd="24dp"
-        android:layout_marginBottom="24dp"
+        android:layout_width="50dp"
+        android:layout_height="32dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:alpha="0.4"
         android:text="Ulos"
-        android:textSize="8sp"
+        android:textSize="6sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="220dp"
+        android:layout_height="202dp"
+        android:layout_marginTop="140dp"
+        android:background="#00FFFFFF"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/drinks" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
